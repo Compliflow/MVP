@@ -346,8 +346,8 @@ body::before {
 }
 
 .results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
@@ -356,8 +356,10 @@ body::before {
   background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border-radius: 16px;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
   border: 1px solid #333;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -395,7 +397,6 @@ body::before {
 .result-item.highlight {
   background: linear-gradient(135deg, #252525 0%, #1a1a1a 100%);
   border: 2px solid #666;
-  grid-column: 1 / -1;
   box-shadow: 
     0 12px 48px rgba(0, 0, 0, 0.9),
     0 0 0 1px rgba(255, 255, 255, 0.1),
@@ -415,19 +416,22 @@ body::before {
 }
 
 .result-item .label {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #999;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  flex: 1;
 }
 
 .result-item .value {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
   transition: all 0.3s ease;
+  text-align: right;
+  min-width: 200px;
 }
 
 .result-item:hover .value {
@@ -445,7 +449,7 @@ body::before {
 }
 
 .result-item .value.highlight-value {
-  font-size: 3rem;
+  font-size: 3.5rem;
   background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -549,8 +553,15 @@ body::before {
     padding: 2rem 1.5rem;
   }
 
-  .results-grid {
-    grid-template-columns: 1fr;
+  .result-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .result-item .value {
+    text-align: left;
+    min-width: auto;
+    width: 100%;
   }
 }
 
