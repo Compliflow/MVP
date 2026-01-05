@@ -10,8 +10,8 @@
  * All risk flags are informational only.
  */
 
-import { Transaction, RiskFlag, RiskLevel, WalletRiskAssessment } from '../../../shared/types';
-import { WalletRiskAssessment as ComplianceWalletRiskAssessment } from '../../../shared/compliance-types';
+import { Transaction, RiskFlag, RiskLevel } from '../../../shared/types';
+import { WalletRiskAssessment } from '../../../shared/compliance-types';
 
 // Known scam/rug contract addresses (example - in production, use a maintained dataset)
 // These are example addresses for demonstration. Replace with actual public datasets.
