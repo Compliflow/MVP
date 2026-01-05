@@ -94,6 +94,9 @@ export async function fetchPricesForTransactions(
   // Rate limit: 10 calls/minute = 6 seconds between calls
   // For MVP, we'll be conservative and use 7 seconds
   const RATE_LIMIT_MS = 7000;
+  
+  // Limit for MVP: max 50 unique token/date combinations to avoid very long waits
+  const MAX_PRICE_QUERIES = 50;
 
   const transactionsWithPrices: Transaction[] = [];
   const uniqueTokens = new Set<string>();
@@ -107,6 +110,10 @@ export async function fetchPricesForTransactions(
   // Group transactions by token and date to minimize API calls
   const priceCache = new Map<string, Map<number, number>>();
 
+  let queryCount = 0;
+  const allQueries: Array<{tokenAddress: string, dayTimestamp: number}> = [];
+  
+  // Collect all queries first
   for (const tokenAddress of uniqueTokens) {
     const tokenTransactions = transactions.filter(
       (tx) => tx.tokenAddress.toLowerCase() === tokenAddress
@@ -120,24 +127,41 @@ export async function fetchPricesForTransactions(
       dates.add(dayTimestamp);
     }
 
-    // Fetch price for each unique date
     for (const dayTimestamp of dates) {
-      const cacheKey = `${tokenAddress}:${dayTimestamp}`;
-      
-      if (!priceCache.has(tokenAddress)) {
-        priceCache.set(tokenAddress, new Map());
-      }
-
-      const price = await fetchHistoricalPrice(tokenAddress, dayTimestamp);
-      if (price !== null) {
-        priceCache.get(tokenAddress)!.set(dayTimestamp, price);
-      }
-
-      // Rate limiting: wait between API calls
-      if (dates.size > 1) {
-        await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS));
-      }
+      allQueries.push({ tokenAddress, dayTimestamp });
     }
+  }
+  
+  // Limit queries for MVP
+  const queriesToProcess = allQueries.slice(0, MAX_PRICE_QUERIES);
+  console.log(`Processing ${queriesToProcess.length} of ${allQueries.length} price queries (limited for MVP)`);
+  
+  // Process queries
+  for (const { tokenAddress, dayTimestamp } of queriesToProcess) {
+    queryCount++;
+    
+    if (!priceCache.has(tokenAddress)) {
+      priceCache.set(tokenAddress, new Map());
+    }
+
+    const price = await fetchHistoricalPrice(tokenAddress, dayTimestamp);
+    if (price !== null) {
+      priceCache.get(tokenAddress)!.set(dayTimestamp, price);
+    }
+    
+    // Log progress every 10 queries
+    if (queryCount % 10 === 0) {
+      console.log(`Price fetching progress: ${queryCount}/${queriesToProcess.length}`);
+    }
+
+    // Rate limiting: wait between API calls (except for last one)
+    if (queryCount < queriesToProcess.length) {
+      await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS));
+    }
+  }
+  
+  if (allQueries.length > MAX_PRICE_QUERIES) {
+    console.warn(`⚠️  Limited to ${MAX_PRICE_QUERIES} price queries. ${allQueries.length - MAX_PRICE_QUERIES} queries skipped.`);
   }
 
   // Apply prices to transactions

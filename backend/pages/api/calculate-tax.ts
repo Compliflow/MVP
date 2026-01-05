@@ -117,7 +117,18 @@ export default async function handler(
 
     // Step 2: Fetch historical prices for all transactions
     console.log(`Fetching historical prices for ${transactions.length} transactions...`);
-    const transactionsWithPrices = await fetchPricesForTransactions(transactions);
+    
+    // Set a timeout for price fetching (5 minutes max)
+    const PRICE_FETCH_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+    const priceFetchPromise = fetchPricesForTransactions(transactions);
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Price fetching timed out after 5 minutes. This wallet has too many transactions. Consider using a wallet with fewer transactions for MVP testing.')), PRICE_FETCH_TIMEOUT);
+    });
+    
+    const transactionsWithPrices = await Promise.race([
+      priceFetchPromise,
+      timeoutPromise,
+    ]);
 
     // Filter out transactions without price data
     const validTransactions = transactionsWithPrices.filter(

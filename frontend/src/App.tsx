@@ -53,6 +53,10 @@ const App: React.FC = () => {
     setResults(null);
 
     try {
+      // Set a timeout of 6 minutes (slightly longer than backend timeout)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6 * 60 * 1000);
+      
       const response = await fetch('http://localhost:3000/api/calculate-tax', {
         method: 'POST',
         headers: {
@@ -62,7 +66,10 @@ const App: React.FC = () => {
           walletAddress,
           chain,
         }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
       const data: ApiResponse = await response.json();
 
@@ -75,7 +82,11 @@ const App: React.FC = () => {
         setResults(data.data);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timed out. This wallet has too many transactions. The calculation is taking longer than 6 minutes. Try a wallet with fewer transactions, or wait for the calculation to complete.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
