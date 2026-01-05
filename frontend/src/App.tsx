@@ -9,6 +9,7 @@ import { WalletInput } from './components/WalletInput';
 import { ChainSelector } from './components/ChainSelector';
 import { CountrySelector } from './components/CountrySelector';
 import { TaxResults } from './components/TaxResults';
+import { ComplianceSection } from './components/ComplianceSection';
 import { Disclaimer } from './components/Disclaimer';
 import { TaxCalculationResult, ApiResponse } from './types';
 import './App.css';
@@ -162,6 +163,14 @@ const App: React.FC = () => {
 
         {results && (
           <TaxResults results={results} loading={loading} />
+        )}
+
+        {walletAddress && (
+          <ComplianceSection
+            walletAddress={walletAddress}
+            chain={chain}
+            country={country}
+          />
         )}
 
         <Disclaimer />
