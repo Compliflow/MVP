@@ -38,24 +38,24 @@ export const TaxResults: React.FC<TaxResultsProps> = ({
       <h2>Tax Estimate</h2>
       
       <div className="results-grid">
-        <div className="result-item">
+        <div className="result-item" onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'}>
           <span className="label">Total Realized Gains:</span>
           <span className="value positive">{formatCurrency(results.totalRealizedGains)}</span>
         </div>
 
-        <div className="result-item">
+        <div className="result-item" onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'}>
           <span className="label">Total Realized Losses:</span>
           <span className="value negative">{formatCurrency(results.totalRealizedLosses)}</span>
         </div>
 
-        <div className="result-item">
+        <div className="result-item" onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'}>
           <span className="label">Net Taxable Gain:</span>
           <span className={`value ${results.netTaxableGain >= 0 ? 'positive' : 'negative'}`}>
             {formatCurrency(results.netTaxableGain)}
           </span>
         </div>
 
-        <div className="result-item highlight">
+        <div className="result-item highlight" onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)'}>
           <span className="label">Estimated Tax Due:</span>
           <span className="value highlight-value">
             {formatCurrency(results.estimatedTaxDue)}

@@ -116,8 +116,33 @@ const App: React.FC = () => {
             onClick={handleCalculate}
             disabled={loading || !walletAddress}
             className="calculate-button"
+            onMouseEnter={(e) => {
+              if (!loading && walletAddress) {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading && walletAddress) {
+                e.currentTarget.style.transform = 'translateY(0)';
+              }
+            }}
           >
-            {loading ? 'Calculating...' : 'Calculate Tax Estimate'}
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  border: '2px solid rgba(255,255,255,0.3)', 
+                  borderTopColor: '#fff',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                  display: 'inline-block'
+                }}></span>
+                Calculating...
+              </span>
+            ) : (
+              'Calculate Tax Estimate'
+            )}
           </button>
         </div>
 
