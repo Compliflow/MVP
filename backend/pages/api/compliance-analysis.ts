@@ -169,76 +169,27 @@ export default async function handler(
     console.log(`Classifying ${transactions.length} transactions...`);
     const classificationSummary = classifyAllTransactions(transactions);
 
-    // Step 2.5: Calculate trade statistics (if we have enough transactions)
+    // Step 2.5: Calculate trade statistics (skip price fetching for speed - use basic counts)
+    // Note: Full trade statistics with PnL require price data which is slow
+    // For compliance analysis, we'll show basic trade counts instead
+    // Full PnL statistics are available in the tax calculation endpoint
     let tradeStatistics: TradeStatistics | undefined = undefined;
-    if (transactions.length > 0 && classificationSummary.classificationBreakdown.trade > 0) {
-      try {
-        console.log(`Calculating trade statistics...`);
-        
-        // Fetch prices for transactions (limited to avoid long waits)
-        const transactionsWithPrices = await fetchPricesForTransactions(transactions.slice(0, 100)); // Limit to first 100 for performance
-        
-        // Calculate PnL to get trade statistics
-        const taxRates: Record<string, number> = {
-          'ireland': 0.33,
-          'united_states': 0.20,
-          'united_kingdom': 0.20,
-          'canada': 0.50,
-          'australia': 0.50,
-          'germany': 0.265,
-          'france': 0.30,
-          'japan': 0.20,
-          'singapore': 0.00,
-          'switzerland': 0.00,
-        };
-        const taxRate = taxRates[country || 'ireland'] || 0.33;
-        
-        const pnlResult = calculatePnL(transactionsWithPrices, taxRate);
-        
-        // Calculate trade statistics from PnL breakdown
-        const profitableTrades = pnlResult.pnlBreakdown.filter(p => p.realizedGainUSD > 0);
-        const lossTrades = pnlResult.pnlBreakdown.filter(p => p.realizedGainUSD < 0);
-        const breakEvenTrades = pnlResult.pnlBreakdown.filter(p => p.realizedGainUSD === 0);
-        
-        // Find biggest win and loss
-        let biggestWin = null;
-        let biggestLoss = null;
-        
-        if (profitableTrades.length > 0) {
-          const maxGain = Math.max(...profitableTrades.map(p => p.realizedGainUSD));
-          biggestWin = profitableTrades.find(p => p.realizedGainUSD === maxGain);
-        }
-        
-        if (lossTrades.length > 0) {
-          const maxLoss = Math.min(...lossTrades.map(p => p.realizedGainUSD));
-          biggestLoss = lossTrades.find(p => p.realizedGainUSD === maxLoss);
-        }
-        
-        tradeStatistics = {
-          totalTrades: pnlResult.pnlBreakdown.length,
-          profitableTrades: profitableTrades.length,
-          lossTrades: lossTrades.length,
-          breakEvenTrades: breakEvenTrades.length,
-          biggestWin: biggestWin ? {
-            amount: biggestWin.realizedGainUSD,
-            tokenSymbol: biggestWin.tokenSymbol,
-            timestamp: biggestWin.timestamp,
-            transactionHash: biggestWin.transactionHash,
-          } : null,
-          biggestLoss: biggestLoss ? {
-            amount: Math.abs(biggestLoss.realizedGainUSD), // Store as positive for display
-            tokenSymbol: biggestLoss.tokenSymbol,
-            timestamp: biggestLoss.timestamp,
-            transactionHash: biggestLoss.transactionHash,
-          } : null,
-        };
-        
-        // Add trade statistics to classification summary
-        classificationSummary.tradeStatistics = tradeStatistics;
-      } catch (error) {
-        console.warn('Could not calculate trade statistics:', error);
-        // Continue without trade statistics
-      }
+    const tradeCount = classificationSummary.classificationBreakdown.trade;
+    
+    if (tradeCount > 0) {
+      // For now, show basic statistics without price data to avoid long waits
+      // Users can get full PnL statistics from the tax calculation endpoint
+      tradeStatistics = {
+        totalTrades: tradeCount,
+        profitableTrades: 0, // Requires PnL calculation with prices
+        lossTrades: 0, // Requires PnL calculation with prices
+        breakEvenTrades: 0,
+        biggestWin: null, // Requires PnL calculation with prices
+        biggestLoss: null, // Requires PnL calculation with prices
+      };
+      
+      // Add note that full statistics require tax calculation
+      classificationSummary.tradeStatistics = tradeStatistics;
     }
 
     // Step 3: Assess wallet risk

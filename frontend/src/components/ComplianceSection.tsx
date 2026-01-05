@@ -212,7 +212,7 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
         </div>
 
         {/* Trade Statistics */}
-        {summary.classificationSummary.tradeStatistics && (
+        {summary.classificationSummary.tradeStatistics && summary.classificationSummary.tradeStatistics.totalTrades > 0 && (
           <div className="trade-statistics">
             <h4>Trade Statistics</h4>
             <div className="trade-stats-grid">
@@ -220,24 +220,33 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
                 <span className="trade-stat-label">Total Trades:</span>
                 <span className="trade-stat-value">{summary.classificationSummary.tradeStatistics.totalTrades}</span>
               </div>
-              <div className="trade-stat-item profitable">
-                <span className="trade-stat-label">Profitable Trades:</span>
-                <span className="trade-stat-value positive">
-                  {summary.classificationSummary.tradeStatistics.profitableTrades}
-                </span>
-              </div>
-              <div className="trade-stat-item loss">
-                <span className="trade-stat-label">Loss Trades:</span>
-                <span className="trade-stat-value negative">
-                  {summary.classificationSummary.tradeStatistics.lossTrades}
-                </span>
-              </div>
-              {summary.classificationSummary.tradeStatistics.breakEvenTrades > 0 && (
-                <div className="trade-stat-item">
-                  <span className="trade-stat-label">Break Even:</span>
-                  <span className="trade-stat-value">
-                    {summary.classificationSummary.tradeStatistics.breakEvenTrades}
-                  </span>
+              {summary.classificationSummary.tradeStatistics.profitableTrades > 0 || summary.classificationSummary.tradeStatistics.lossTrades > 0 ? (
+                <>
+                  <div className="trade-stat-item profitable">
+                    <span className="trade-stat-label">Profitable Trades:</span>
+                    <span className="trade-stat-value positive">
+                      {summary.classificationSummary.tradeStatistics.profitableTrades}
+                    </span>
+                  </div>
+                  <div className="trade-stat-item loss">
+                    <span className="trade-stat-label">Loss Trades:</span>
+                    <span className="trade-stat-value negative">
+                      {summary.classificationSummary.tradeStatistics.lossTrades}
+                    </span>
+                  </div>
+                  {summary.classificationSummary.tradeStatistics.breakEvenTrades > 0 && (
+                    <div className="trade-stat-item">
+                      <span className="trade-stat-label">Break Even:</span>
+                      <span className="trade-stat-value">
+                        {summary.classificationSummary.tradeStatistics.breakEvenTrades}
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="trade-stat-note">
+                  <p>Full trade statistics (wins/losses) require price data and are calculated in the Tax Estimate section above.</p>
+                  <p>Click "Calculate Tax Estimate" to see detailed PnL breakdown including profitable vs loss trades.</p>
                 </div>
               )}
             </div>
