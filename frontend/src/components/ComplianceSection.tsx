@@ -74,9 +74,8 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
     fetchComplianceAnalysis();
   }, [walletAddress, chain, country, onAnalysisComplete]);
 
-  // Always show section if wallet address is provided (even if no results yet)
-  // This allows the section to be visible and show loading state
-
+  // Always show section if wallet address is provided
+  // Show loading state while analyzing
   if (loading) {
     return (
       <div className="compliance-section loading">
@@ -86,6 +85,7 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
     );
   }
 
+  // Show error state if analysis failed
   if (error) {
     return (
       <div className="compliance-section error">
@@ -95,8 +95,14 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
     );
   }
 
+  // Show empty state if no summary yet (shouldn't happen, but handle gracefully)
   if (!summary) {
-    return null;
+    return (
+      <div className="compliance-section">
+        <h2>Compliance & Risk Analysis</h2>
+        <p>Enter a wallet address to analyze compliance risks.</p>
+      </div>
+    );
   }
 
   const getRiskColor = (risk: string) => {
