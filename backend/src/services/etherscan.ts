@@ -1,14 +1,15 @@
 /**
- * Etherscan API Service
+ * Etherscan API Service (V2)
  * 
  * Fetches ERC-20 token transfer transactions for a given wallet address.
- * Uses Etherscan's free API (rate limit: 5 calls/second).
+ * Uses Etherscan's free API V2 (rate limit: 3 calls/second for free tier).
  */
 
 import { Transaction } from '../../../shared/types';
 
-const ETHERSCAN_API_URL = 'https://api.etherscan.io/api';
+const ETHERSCAN_API_URL = 'https://api.etherscan.io/v2/api';
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || 'YourApiKeyToken'; // Get free key from etherscan.io
+const ETHEREUM_CHAIN_ID = 1; // Ethereum mainnet chain ID
 
 // Check if API key is still the placeholder
 if (ETHERSCAN_API_KEY === 'YourApiKeyToken' || !ETHERSCAN_API_KEY || ETHERSCAN_API_KEY.trim() === '') {
@@ -23,7 +24,8 @@ if (ETHERSCAN_API_KEY === 'YourApiKeyToken' || !ETHERSCAN_API_KEY || ETHERSCAN_A
  * @returns Array of transactions
  */
 export async function fetchTransactions(address: string): Promise<Transaction[]> {
-  const url = `${ETHERSCAN_API_URL}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`;
+  // V2 API format: chainid parameter is required
+  const url = `${ETHERSCAN_API_URL}?chainid=${ETHEREUM_CHAIN_ID}&module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`;
   
   try {
     const response = await fetch(url);
@@ -33,10 +35,15 @@ export async function fetchTransactions(address: string): Promise<Transaction[]>
 
     const data = await response.json();
     
+    // V2 API response format may differ, handle both success and error cases
     if (data.status === '0' && data.message !== 'No transactions found') {
       // Check for common API key errors
-      if (data.message === 'NOTOK' || data.message.includes('Invalid API Key') || data.message.includes('api key')) {
+      if (data.message === 'NOTOK' && (data.result === 'Invalid API Key' || data.result?.includes('Invalid API Key') || data.result?.includes('api key'))) {
         throw new Error('Invalid Etherscan API key. Please set a valid API key in backend/.env.local file. Get a free key from https://etherscan.io/apis');
+      }
+      // Generic NOTOK error
+      if (data.message === 'NOTOK') {
+        throw new Error(`Etherscan API error: ${data.result || data.message}`);
       }
       throw new Error(`Etherscan API error: ${data.message}`);
     }
