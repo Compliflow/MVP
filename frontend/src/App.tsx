@@ -16,16 +16,17 @@ import './App.css';
 const App: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [chain, setChain] = useState<string>('ethereum');
-  
-  // Reset wallet address when chain changes
+  const [country, setCountry] = useState<string>('ireland');
+  const [results, setResults] = useState<TaxCalculationResult | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+
+  // Reset wallet address when chain or country changes
   useEffect(() => {
     setWalletAddress('');
     setError('');
     setResults(null);
   }, [chain, country]);
-  const [results, setResults] = useState<TaxCalculationResult | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
 
   const validateAddress = (address: string, chain: string): boolean => {
     if (!address) return false;
