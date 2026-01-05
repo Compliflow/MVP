@@ -10,6 +10,12 @@ import { Transaction } from '../../../shared/types';
 const ETHERSCAN_API_URL = 'https://api.etherscan.io/api';
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || 'YourApiKeyToken'; // Get free key from etherscan.io
 
+// Check if API key is still the placeholder
+if (ETHERSCAN_API_KEY === 'YourApiKeyToken' || !ETHERSCAN_API_KEY || ETHERSCAN_API_KEY.trim() === '') {
+  console.warn('⚠️  WARNING: Etherscan API key is not set. Please add your API key to backend/.env.local');
+  console.warn('   Get a free API key from: https://etherscan.io/apis');
+}
+
 /**
  * Fetch all ERC-20 token transfers for a wallet address
  * 
@@ -28,6 +34,10 @@ export async function fetchTransactions(address: string): Promise<Transaction[]>
     const data = await response.json();
     
     if (data.status === '0' && data.message !== 'No transactions found') {
+      // Check for common API key errors
+      if (data.message === 'NOTOK' || data.message.includes('Invalid API Key') || data.message.includes('api key')) {
+        throw new Error('Invalid Etherscan API key. Please set a valid API key in backend/.env.local file. Get a free key from https://etherscan.io/apis');
+      }
       throw new Error(`Etherscan API error: ${data.message}`);
     }
 

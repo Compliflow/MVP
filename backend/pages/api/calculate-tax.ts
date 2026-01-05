@@ -151,9 +151,20 @@ export default async function handler(
     });
   } catch (error) {
     console.error('Error calculating tax:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    
+    // Provide helpful message for API key errors
+    if (errorMessage.includes('API key') || errorMessage.includes('NOTOK')) {
+      return res.status(400).json({
+        success: false,
+        error: errorMessage,
+        hint: 'Please set a valid Etherscan API key in backend/.env.local. Get a free key from https://etherscan.io/apis',
+      });
+    }
+    
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error',
+      error: errorMessage,
     });
   }
 }
