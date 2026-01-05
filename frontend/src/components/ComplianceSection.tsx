@@ -74,9 +74,8 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
     fetchComplianceAnalysis();
   }, [walletAddress, chain, country, onAnalysisComplete]);
 
-  if (!walletAddress) {
-    return null;
-  }
+  // Always show section if wallet address is provided (even if no results yet)
+  // This allows the section to be visible and show loading state
 
   if (loading) {
     return (

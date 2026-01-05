@@ -165,7 +165,8 @@ const App: React.FC = () => {
           <TaxResults results={results} loading={loading} />
         )}
 
-        {walletAddress && (
+        {/* Compliance & Risk Section - shows when wallet address is entered */}
+        {walletAddress && validateAddress(walletAddress, chain) && (
           <ComplianceSection
             walletAddress={walletAddress}
             chain={chain}
