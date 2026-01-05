@@ -131,10 +131,23 @@ body::before {
   flex-direction: column;
   gap: 2rem;
   margin-bottom: 2.5rem;
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .wallet-input,
-.chain-selector {
+.chain-selector,
+.country-selector {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -142,7 +155,8 @@ body::before {
 }
 
 .wallet-input label,
-.chain-selector label {
+.chain-selector label,
+.country-selector label {
   font-weight: 700;
   color: #d0d0d0;
   font-size: 0.95rem;
@@ -163,7 +177,8 @@ body::before {
 }
 
 .wallet-input input,
-.chain-selector select {
+.chain-selector select,
+.country-selector select {
   padding: 1.25rem 1.5rem;
   font-size: 1rem;
   border: 2px solid #333;
@@ -175,19 +190,23 @@ body::before {
   box-shadow: 
     0 4px 12px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  cursor: pointer;
 }
 
 .wallet-input input:hover,
-.chain-selector select:hover {
+.chain-selector select:hover,
+.country-selector select:hover {
   border-color: #555;
   box-shadow: 
     0 6px 20px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transform: translateY(-1px);
+  background: linear-gradient(135deg, #151515 0%, #1f1f1f 100%);
 }
 
 .wallet-input input:focus,
-.chain-selector select:focus {
+.chain-selector select:focus,
+.country-selector select:focus {
   outline: none;
   border-color: #888;
   box-shadow: 
@@ -270,13 +289,14 @@ body::before {
 }
 
 .calculate-button:hover:not(:disabled) {
-  transform: translateY(-3px);
-  border-color: #666;
+  transform: translateY(-4px) scale(1.02) perspective(1000px) rotateX(-2deg);
+  border-color: #777;
   box-shadow: 
-    0 12px 32px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    0 0 20px rgba(255, 255, 255, 0.1);
-  background: linear-gradient(135deg, #333 0%, #222 100%);
+    0 16px 40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 30px rgba(255, 255, 255, 0.15),
+    0 0 60px rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #353535 0%, #252525 100%);
 }
 
 .calculate-button:active:not(:disabled) {
@@ -381,13 +401,14 @@ body::before {
 }
 
 .result-item:hover {
-  transform: translateY(-6px) scale(1.02);
-  border-color: #555;
+  transform: translateY(-8px) scale(1.03);
+  border-color: #666;
   box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  background: linear-gradient(135deg, #222 0%, #1a1a1a 100%);
+    0 16px 48px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 40px rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #252525 0%, #1f1f1f 100%);
 }
 
 .result-item:hover::before {
@@ -525,8 +546,9 @@ body::before {
   }
 }
 
-/* Interactive hover effects for select dropdown */
-.chain-selector select {
+/* Interactive hover effects for select dropdowns */
+.chain-selector select,
+.country-selector select {
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
@@ -535,7 +557,8 @@ body::before {
   padding-right: 3rem;
 }
 
-.chain-selector select:focus {
+.chain-selector select:focus,
+.country-selector select:focus {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ccc' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
 }
 

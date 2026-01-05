@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { WalletInput } from './components/WalletInput';
 import { ChainSelector } from './components/ChainSelector';
+import { CountrySelector } from './components/CountrySelector';
 import { TaxResults } from './components/TaxResults';
 import { Disclaimer } from './components/Disclaimer';
 import { TaxCalculationResult, ApiResponse } from './types';
@@ -21,7 +22,7 @@ const App: React.FC = () => {
     setWalletAddress('');
     setError('');
     setResults(null);
-  }, [chain]);
+  }, [chain, country]);
   const [results, setResults] = useState<TaxCalculationResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -65,6 +66,7 @@ const App: React.FC = () => {
         body: JSON.stringify({
           walletAddress,
           chain,
+          country,
         }),
         signal: controller.signal,
       });
@@ -110,6 +112,11 @@ const App: React.FC = () => {
           <ChainSelector
             value={chain}
             onChange={setChain}
+            disabled={loading}
+          />
+          <CountrySelector
+            value={country}
+            onChange={setCountry}
             disabled={loading}
           />
           <button

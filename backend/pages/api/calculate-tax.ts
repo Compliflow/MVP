@@ -43,7 +43,7 @@ export default async function handler(
   }
 
   try {
-    const { walletAddress, chain } = req.body;
+    const { walletAddress, chain, country } = req.body;
 
     // Validate input
     if (!walletAddress || typeof walletAddress !== 'string') {
@@ -153,7 +153,23 @@ export default async function handler(
 
     // Step 3: Calculate PnL using FIFO
     console.log(`Calculating PnL for ${validTransactions.length} transactions...`);
-    const taxResult = calculatePnL(validTransactions, 0.33);
+    
+    // Get tax rate based on country (default to Ireland 33%)
+    const taxRates: Record<string, number> = {
+      'ireland': 0.33,
+      'united_states': 0.20, // Simplified - varies by income bracket
+      'united_kingdom': 0.20, // CGT rate
+      'canada': 0.50, // 50% inclusion rate, then marginal rate
+      'australia': 0.50, // 50% discount for long-term
+      'germany': 0.265, // Flat rate
+      'france': 0.30, // Flat rate
+      'japan': 0.20, // Simplified
+      'singapore': 0.00, // No capital gains tax
+      'switzerland': 0.00, // No capital gains tax for individuals
+    };
+    
+    const taxRate = taxRates[country || 'ireland'] || 0.33;
+    const taxResult = calculatePnL(validTransactions, taxRate);
 
     // Step 4: Return result
     return res.status(200).json({
