@@ -1,173 +1,263 @@
 # CompliFlow
 
-A simple, utility-focused web application for estimating cryptocurrency tax liability using FIFO (First-In-First-Out) accounting.
+**CompliFlow** is a modern, utility-focused web application for estimating cryptocurrency tax liability using FIFO (First-In-First-Out) accounting methodology. Built with clarity, correctness, and simplicity in mind.
 
-## Overview
+![CompliFlow](https://img.shields.io/badge/Status-MVP-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![React](https://img.shields.io/badge/React-18-blue)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
 
-This MVP calculates estimated tax due on cryptocurrency transactions by:
-1. Fetching on-chain transactions from Ethereum wallets
-2. Retrieving historical token prices at transaction timestamps
-3. Calculating realized gains/losses using FIFO accounting
-4. Applying simplified Ireland tax rules (33% Capital Gains Tax)
+## 🎯 What Does This Project Do?
 
-## Features
+CompliFlow helps cryptocurrency users estimate their tax liability by:
 
-- **No Authentication**: Simple, direct utility
-- **No Payments**: Free to use
-- **Desktop-First UI**: Clean, simple interface
-- **FIFO Accounting**: Accurate cost basis tracking
-- **Historical Price Data**: Uses CoinGecko for accurate pricing
+1. **Fetching On-Chain Transactions**: Retrieves all token transfers from blockchain networks (Ethereum, BSC, Solana)
+2. **Historical Price Lookup**: Fetches accurate USD prices for tokens at the time of each transaction
+3. **FIFO Accounting**: Calculates realized gains and losses using First-In-First-Out methodology
+4. **Tax Estimation**: Applies simplified tax rules (33% Capital Gains Tax for Ireland) to calculate estimated tax due
 
-## Tech Stack
+### Key Features
 
-- **Frontend**: React 18 + TypeScript
-- **Backend**: Next.js API routes
-- **APIs**: 
-  - Etherscan (transaction data)
-  - CoinGecko (historical prices)
+- ✅ **Multi-Chain Support**: Ethereum, Binance Smart Chain (BSC), and Solana
+- ✅ **FIFO Accounting**: Accurate cost basis tracking with oldest-first matching
+- ✅ **No Authentication Required**: Simple, direct utility - just enter a wallet address
+- ✅ **Desktop-First UI**: Clean, modern interface with gradient design
+- ✅ **Real-Time Calculations**: Fetches live transaction data from blockchain APIs
+- ✅ **Error Handling**: Graceful timeouts and helpful error messages
 
-## Project Structure
+## 🏗️ Architecture
 
 ```
-CompliFlow/
-├── frontend/          # React frontend application
-├── backend/           # Next.js backend with API routes
-├── shared/            # Shared TypeScript types
-├── ARCHITECTURE.md    # Detailed architecture documentation
-├── DATA_MODEL.md      # Data model design
-└── README.md          # This file
+User Input (Wallet Address + Chain)
+    ↓
+Frontend (React + TypeScript)
+    ↓
+Backend API (Next.js)
+    ├──→ Etherscan/BSCScan API (Transaction Data)
+    ├──→ CoinGecko API (Historical Prices)
+    └──→ FIFO PnL Calculator
+    ↓
+Tax Estimation Results
 ```
 
-## Setup
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
+- Node.js 18+ and npm
 - Free Etherscan API key ([Get one here](https://etherscan.io/apis))
 
 ### Installation
 
-1. **Navigate to the project**:
+1. **Clone the repository**:
    ```bash
-   cd CompliFlow
+   git clone https://github.com/Compliflow/MVP.git
+   cd MVP
    ```
 
-2. **Install backend dependencies**:
+2. **Install dependencies**:
    ```bash
+   # Backend
    cd backend
    npm install
-   ```
-
-3. **Install frontend dependencies**:
-   ```bash
+   
+   # Frontend
    cd ../frontend
    npm install
    ```
 
-4. **Configure environment variables**:
-   
-   Create `backend/.env.local`:
-   ```env
-   ETHERSCAN_API_KEY=your_etherscan_api_key_here
-   ```
-
-### Running the Application
-
-**Option 1: Run as separate frontend/backend** (for development):
-
-1. Start the backend (Next.js):
+3. **Configure API key**:
    ```bash
    cd backend
-   npm run dev
+   echo "ETHERSCAN_API_KEY=your_api_key_here" > .env.local
    ```
-   Backend runs on `http://localhost:3000`
 
-2. Start the frontend (React):
+4. **Start servers**:
    ```bash
-   cd frontend
+   # Terminal 1 - Backend
+   cd backend
    npm run dev
+   
+   # Terminal 2 - Frontend
+   cd frontend
+   PORT=3001 npm run dev
    ```
-   Frontend runs on `http://localhost:3001` (or next available port)
 
-   Update `frontend/src/App.tsx` to point to backend URL if needed.
+5. **Open browser**: Navigate to `http://localhost:3001`
 
-**Option 2: Run as integrated Next.js app** (recommended):
+## 📖 How It Works
 
-1. Move frontend code into Next.js structure
-2. Run `npm run dev` from backend directory
-3. Access at `http://localhost:3000`
+### FIFO Accounting Explained
 
-## Usage
+FIFO (First-In-First-Out) ensures that when you sell tokens, the oldest tokens in your inventory are matched first:
 
-1. Enter an Ethereum wallet address (0x...)
-2. Select blockchain (Ethereum only in MVP)
-3. Click "Calculate Tax Estimate"
-4. View results:
-   - Total Realized Gains
-   - Total Realized Losses
-   - Net Taxable Gain
-   - Estimated Tax Due (33%)
+**Example:**
+1. Buy 100 USDC at $1.00 → Added to inventory
+2. Buy 50 USDC at $1.10 → Added to inventory
+3. Sell 75 USDC at $1.20 → Matches against oldest 75 (from first purchase)
+   - Cost basis: 75 × $1.00 = $75
+   - Sale value: 75 × $1.20 = $90
+   - **Realized gain: $15**
 
-## How It Works
+### Tax Calculation
 
-### Data Flow
+- **Total Realized Gains**: Sum of all profitable transactions
+- **Total Realized Losses**: Sum of all loss transactions
+- **Net Taxable Gain**: Gains - Losses
+- **Estimated Tax Due**: Net Taxable Gain × 33% (Ireland rate)
 
-1. **Transaction Fetching**: Uses Etherscan API to fetch all ERC-20 token transfers
-2. **Price Fetching**: Uses CoinGecko API to get historical USD prices at transaction timestamps
-3. **FIFO Calculation**: Processes transactions chronologically, matching sells against oldest purchases
-4. **Tax Calculation**: Applies 33% tax rate to net taxable gain
+## 🛠️ Tech Stack
 
-### FIFO Accounting
+- **Frontend**: React 18 + TypeScript
+- **Backend**: Next.js 14 (API Routes)
+- **APIs**:
+  - Etherscan API V2 (Ethereum transactions)
+  - CoinGecko API (Historical token prices)
+- **Styling**: CSS with modern gradients and animations
 
-- When tokens are **bought/acquired**: Added to inventory queue
-- When tokens are **sold/disposed**: Removed from inventory (oldest first)
-- **Realized Gain/Loss** = (Sale Price - Cost Basis) × Amount
-- **Net Taxable Gain** = Total Gains - Total Losses
+## 📁 Project Structure
 
-## Limitations (MVP v1)
+```
+CompliFlow/
+├── frontend/              # React frontend application
+│   ├── src/
+│   │   ├── components/   # UI components
+│   │   ├── App.tsx       # Main application
+│   │   └── App.css       # Modern styling
+│   └── package.json
+├── backend/              # Next.js backend
+│   ├── pages/api/       # API routes
+│   ├── src/services/    # Business logic
+│   │   ├── pnlCalculator.ts    # Core FIFO logic
+│   │   ├── etherscan.ts        # Transaction fetching
+│   │   └── coingecko.ts        # Price fetching
+│   └── package.json
+├── shared/               # Shared TypeScript types
+└── README.md
+```
 
-- ✅ Ethereum only (no multi-chain support)
-- ✅ ERC-20 tokens only (no native ETH, no NFTs)
-- ✅ No gas fee accounting
-- ✅ No staking rewards or airdrops
-- ✅ Simplified tax rules (no exemptions, no allowances)
-- ✅ Rate limits may cause delays for large wallets
-- ✅ No historical data persistence
+## ⚠️ Current Limitations (MVP)
 
-## API Rate Limits
+- **Ethereum Only**: BSC and Solana UI ready, backend integration pending
+- **ERC-20 Tokens Only**: No native ETH, no NFTs
+- **No Gas Fee Accounting**: Gas costs not included in calculations
+- **Simplified Tax Rules**: No exemptions, no allowances
+- **Rate Limiting**: Large wallets may timeout (50 query limit for MVP)
+- **No Data Persistence**: Calculations are not saved
 
-- **Etherscan**: 5 calls/second (free tier)
-- **CoinGecko**: 10-50 calls/minute (free tier)
+## 🔮 Future Scope & Enhancements
 
-For wallets with many transactions, price fetching may take several minutes due to rate limiting.
+### Phase 2: Multi-Chain Support
+- [ ] **BSC Integration**: Full BSCScan API integration for Binance Smart Chain
+- [ ] **Solana Integration**: Solana RPC client for transaction fetching
+- [ ] **Polygon Support**: Add Polygon network support
+- [ ] **Arbitrum & Optimism**: Layer 2 network support
+- [ ] **Multi-Chain Aggregation**: Combine transactions across all chains
 
-## Core PnL Calculation Logic
+### Phase 3: Enhanced Transaction Types
+- [ ] **Native ETH/BNB Transactions**: Support for native token transfers
+- [ ] **NFT Support**: Calculate gains/losses for NFT sales
+- [ ] **Staking Rewards**: Track and tax staking income
+- [ ] **Airdrops**: Handle airdrop transactions
+- [ ] **DeFi Interactions**: Lending, borrowing, yield farming
+- [ ] **Gas Fee Accounting**: Include gas costs in cost basis
 
-The core calculation logic is in `backend/src/services/pnlCalculator.ts`:
+### Phase 4: Advanced Tax Features
+- [ ] **Multiple Tax Jurisdictions**: Support for US, UK, EU countries
+- [ ] **Tax Year Selection**: Calculate for specific tax years
+- [ ] **Exemptions & Allowances**: Implement country-specific tax rules
+- [ ] **Wash Sale Rules**: Detect and handle wash sales
+- [ ] **Holding Period Rules**: Short-term vs long-term capital gains
+- [ ] **Tax Loss Harvesting**: Identify optimal sell strategies
 
-- `calculatePnL()`: Main function that processes transactions
-- `addToInventory()`: Adds tokens to FIFO queue
-- `removeFromInventory()`: Removes tokens (oldest first) and calculates PnL
+### Phase 5: User Experience
+- [ ] **Progress Indicators**: Real-time progress for long calculations
+- [ ] **Transaction Breakdown**: Detailed view of each transaction's PnL
+- [ ] **Export Functionality**: CSV/PDF export of tax reports
+- [ ] **Historical Data**: Save and compare calculations over time
+- [ ] **Multiple Wallets**: Track multiple wallet addresses
+- [ ] **Portfolio View**: Aggregate view across all wallets
 
-See `DATA_MODEL.md` for detailed data structure documentation.
+### Phase 6: Performance & Scale
+- [ ] **Caching Layer**: Redis cache for price data
+- [ ] **Background Processing**: Queue system for large wallets
+- [ ] **Batch Processing**: Process transactions in parallel
+- [ ] **Database Integration**: Store calculation history
+- [ ] **API Rate Limit Optimization**: Smart batching and caching
 
-## Next Steps (Post-MVP)
+### Phase 7: Enterprise Features
+- [ ] **User Accounts**: Optional authentication for saving data
+- [ ] **Team Workspaces**: Share calculations with accountants
+- [ ] **API Access**: Programmatic access for tax professionals
+- [ ] **Audit Trail**: Complete history of all calculations
+- [ ] **Compliance Reports**: Generate official tax documents
 
-- [ ] Add more chains (Polygon, BSC, Arbitrum)
-- [ ] Support native ETH transactions
-- [ ] Add gas fee accounting
-- [ ] Support NFTs
-- [ ] Add more tax jurisdictions
-- [ ] Implement caching layer
-- [ ] Add transaction export (CSV)
-- [ ] Add detailed transaction breakdown view
-- [ ] Add progress indicators for long-running calculations
+## 🎨 Design Philosophy
 
-## Disclaimer
+CompliFlow follows these core principles:
+
+- **No Authentication**: Direct utility, no sign-up required
+- **No Payments**: Free to use (uses free-tier APIs)
+- **No Tokens**: No cryptocurrency or token requirements
+- **Pure Utility**: Focus on correctness and clarity
+- **Desktop-First**: Optimized for desktop use
+- **Transparency**: Clear disclaimers and error messages
+
+## 📝 API Documentation
+
+### Calculate Tax Endpoint
+
+**POST** `/api/calculate-tax`
+
+**Request:**
+```json
+{
+  "walletAddress": "0x...",
+  "chain": "ethereum" | "bsc" | "solana"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalRealizedGains": 1234.56,
+    "totalRealizedLosses": 234.56,
+    "netTaxableGain": 1000.00,
+    "estimatedTaxDue": 330.00,
+    "taxRate": 0.33,
+    "transactionCount": 150,
+    "pnlBreakdown": [...]
+  }
+}
+```
+
+## 🔒 Privacy & Security
+
+- **No Data Storage**: Wallet addresses are never stored
+- **API-Only**: All data fetched on-demand from public APIs
+- **No Tracking**: No analytics or user tracking
+- **Client-Side Processing**: Calculations happen server-side but data isn't persisted
+
+## ⚖️ Disclaimer
 
 **This is an estimate only and does not constitute tax advice.** Tax calculations are based on simplified rules and may not reflect your actual tax liability. Consult with a qualified tax professional for accurate tax advice.
 
-## License
+## 🤝 Contributing
 
-MIT
+This is currently an MVP. Contributions and feedback are welcome!
 
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+## 🙏 Acknowledgments
+
+- Etherscan for blockchain data APIs
+- CoinGecko for historical price data
+- Built with React, Next.js, and TypeScript
+
+---
+
+**Built with ❤️ for the crypto community**
