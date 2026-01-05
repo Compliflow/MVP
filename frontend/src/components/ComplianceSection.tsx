@@ -210,6 +210,66 @@ export const ComplianceSection: React.FC<ComplianceSectionProps> = ({
             ))}
           </div>
         </div>
+
+        {/* Trade Statistics */}
+        {summary.classificationSummary.tradeStatistics && (
+          <div className="trade-statistics">
+            <h4>Trade Statistics</h4>
+            <div className="trade-stats-grid">
+              <div className="trade-stat-item">
+                <span className="trade-stat-label">Total Trades:</span>
+                <span className="trade-stat-value">{summary.classificationSummary.tradeStatistics.totalTrades}</span>
+              </div>
+              <div className="trade-stat-item profitable">
+                <span className="trade-stat-label">Profitable Trades:</span>
+                <span className="trade-stat-value positive">
+                  {summary.classificationSummary.tradeStatistics.profitableTrades}
+                </span>
+              </div>
+              <div className="trade-stat-item loss">
+                <span className="trade-stat-label">Loss Trades:</span>
+                <span className="trade-stat-value negative">
+                  {summary.classificationSummary.tradeStatistics.lossTrades}
+                </span>
+              </div>
+              {summary.classificationSummary.tradeStatistics.breakEvenTrades > 0 && (
+                <div className="trade-stat-item">
+                  <span className="trade-stat-label">Break Even:</span>
+                  <span className="trade-stat-value">
+                    {summary.classificationSummary.tradeStatistics.breakEvenTrades}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {(summary.classificationSummary.tradeStatistics.biggestWin || summary.classificationSummary.tradeStatistics.biggestLoss) && (
+              <div className="trade-extremes">
+                {summary.classificationSummary.tradeStatistics.biggestWin && (
+                  <div className="trade-extreme-item win">
+                    <span className="extreme-label">Biggest Win:</span>
+                    <span className="extreme-value positive">
+                      ${summary.classificationSummary.tradeStatistics.biggestWin.amount.toFixed(2)}
+                    </span>
+                    <span className="extreme-details">
+                      {summary.classificationSummary.tradeStatistics.biggestWin.tokenSymbol}
+                    </span>
+                  </div>
+                )}
+                {summary.classificationSummary.tradeStatistics.biggestLoss && (
+                  <div className="trade-extreme-item loss">
+                    <span className="extreme-label">Biggest Loss:</span>
+                    <span className="extreme-value negative">
+                      -${summary.classificationSummary.tradeStatistics.biggestLoss.amount.toFixed(2)}
+                    </span>
+                    <span className="extreme-details">
+                      {summary.classificationSummary.tradeStatistics.biggestLoss.tokenSymbol}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Compliance Flags Card */}

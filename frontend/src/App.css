@@ -791,6 +791,118 @@ body::before {
   margin-top: 1rem;
 }
 
+/* Trade Statistics Styles */
+.trade-statistics {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #333;
+}
+
+.trade-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.trade-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid #333;
+  transition: all 0.3s ease;
+}
+
+.trade-stat-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #555;
+}
+
+.trade-stat-item.profitable {
+  border-left: 3px solid #4ade80;
+}
+
+.trade-stat-item.loss {
+  border-left: 3px solid #f87171;
+}
+
+.trade-stat-label {
+  color: #999;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trade-stat-value {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.trade-stat-value.positive {
+  color: #4ade80;
+}
+
+.trade-stat-value.negative {
+  color: #f87171;
+}
+
+.trade-extremes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.trade-extreme-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 2px solid #333;
+}
+
+.trade-extreme-item.win {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.trade-extreme-item.loss {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.extreme-label {
+  color: #999;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.extreme-value {
+  font-weight: 800;
+  font-size: 2rem;
+}
+
+.extreme-value.positive {
+  color: #4ade80;
+}
+
+.extreme-value.negative {
+  color: #f87171;
+}
+
+.extreme-details {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -20,6 +20,29 @@ export interface WalletRiskAssessment {
 }
 
 /**
+ * Trade Statistics
+ * Statistics about profitable and loss-making trades
+ */
+export interface TradeStatistics {
+  totalTrades: number;
+  profitableTrades: number;
+  lossTrades: number;
+  breakEvenTrades: number;
+  biggestWin: {
+    amount: number;
+    tokenSymbol: string;
+    timestamp: number;
+    transactionHash: string;
+  } | null;
+  biggestLoss: {
+    amount: number;
+    tokenSymbol: string;
+    timestamp: number;
+    transactionHash: string;
+  } | null;
+}
+
+/**
  * Transaction Classification Summary
  * Summary of transaction classifications
  */
@@ -29,6 +52,7 @@ export interface ClassificationSummary {
   unclassifiedCount: number;
   classificationBreakdown: Record<TransactionClassification, number>;
   classificationConfidence: number; // 0-1, average confidence in classifications
+  tradeStatistics?: TradeStatistics; // Trade statistics if available
 }
 
 /**
