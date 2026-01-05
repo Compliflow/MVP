@@ -27,6 +27,16 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -40,20 +50,55 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid wallet address' });
     }
 
-    if (chain !== 'ethereum') {
+    // Validate chain
+    const supportedChains = ['ethereum', 'bsc', 'solana'];
+    if (!supportedChains.includes(chain)) {
       return res.status(400).json({ 
-        error: 'Only Ethereum is supported in MVP' 
+        error: `Unsupported chain. Supported chains: ${supportedChains.join(', ')}` 
       });
     }
 
-    // Validate Ethereum address format (basic check)
-    if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
-      return res.status(400).json({ error: 'Invalid Ethereum address format' });
+    // Validate address format based on chain
+    let isValidAddress = false;
+    switch (chain) {
+      case 'ethereum':
+      case 'bsc':
+        isValidAddress = /^0x[a-fA-F0-9]{40}$/i.test(walletAddress);
+        if (!isValidAddress) {
+          return res.status(400).json({ 
+            error: `Invalid ${chain === 'bsc' ? 'BSC' : 'Ethereum'} address format (should be 0x followed by 40 hex characters)` 
+          });
+        }
+        break;
+      case 'solana':
+        isValidAddress = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletAddress);
+        if (!isValidAddress) {
+          return res.status(400).json({ 
+            error: 'Invalid Solana address format (should be 32-44 base58 characters)' 
+          });
+        }
+        break;
     }
 
-    // Step 1: Fetch transactions from Etherscan
-    console.log(`Fetching transactions for ${walletAddress}...`);
-    const transactions = await fetchTransactions(walletAddress);
+    // Step 1: Fetch transactions based on chain
+    console.log(`Fetching transactions for ${walletAddress} on ${chain}...`);
+    let transactions;
+    
+    if (chain === 'ethereum') {
+      transactions = await fetchTransactions(walletAddress);
+    } else if (chain === 'bsc') {
+      // TODO: Implement BSC transaction fetching
+      return res.status(501).json({ 
+        error: 'BSC support is coming soon. Please use Ethereum for now.' 
+      });
+    } else if (chain === 'solana') {
+      // TODO: Implement Solana transaction fetching
+      return res.status(501).json({ 
+        error: 'Solana support is coming soon. Please use Ethereum for now.' 
+      });
+    } else {
+      return res.status(400).json({ error: 'Unsupported chain' });
+    }
 
     if (transactions.length === 0) {
       return res.status(200).json({
