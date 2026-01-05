@@ -4,7 +4,7 @@
  * Desktop-first, simple UI for crypto tax estimation
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { WalletInput } from './components/WalletInput';
 import { ChainSelector } from './components/ChainSelector';
 import { TaxResults } from './components/TaxResults';
@@ -15,14 +15,36 @@ import './App.css';
 const App: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [chain, setChain] = useState<string>('ethereum');
+  
+  // Reset wallet address when chain changes
+  useEffect(() => {
+    setWalletAddress('');
+    setError('');
+    setResults(null);
+  }, [chain]);
   const [results, setResults] = useState<TaxCalculationResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
+  const validateAddress = (address: string, chain: string): boolean => {
+    if (!address) return false;
+    
+    switch (chain) {
+      case 'ethereum':
+      case 'bsc':
+        return /^0x[a-fA-F0-9]{40}$/i.test(address);
+      case 'solana':
+        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+      default:
+        return false;
+    }
+  };
+
   const handleCalculate = async () => {
     // Validate input
-    if (!walletAddress || !/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
-      setError('Please enter a valid Ethereum wallet address');
+    if (!walletAddress || !validateAddress(walletAddress, chain)) {
+      const chainName = chain === 'bsc' ? 'BSC' : chain === 'solana' ? 'Solana' : 'Ethereum';
+      setError(`Please enter a valid ${chainName} wallet address`);
       return;
     }
 
@@ -71,6 +93,7 @@ const App: React.FC = () => {
           <WalletInput
             value={walletAddress}
             onChange={setWalletAddress}
+            chain={chain}
             disabled={loading}
           />
           <ChainSelector

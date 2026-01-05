@@ -1,7 +1,7 @@
 /**
  * ChainSelector Component
  * 
- * Dropdown to select blockchain (Ethereum only for MVP)
+ * Dropdown to select blockchain (Ethereum, BSC, Solana)
  */
 
 import React from 'react';
@@ -17,14 +17,15 @@ export const ChainSelector: React.FC<ChainSelectorProps> = ({
   onChange,
   disabled = false,
 }) => {
-  // MVP: Only Ethereum supported
   const chains = [
-    { value: 'ethereum', label: 'Ethereum' },
+    { value: 'ethereum', label: 'Ethereum', icon: '⛽' },
+    { value: 'bsc', label: 'Binance Smart Chain (BSC)', icon: '🟡' },
+    { value: 'solana', label: 'Solana', icon: '🟣' },
   ];
 
   return (
     <div className="chain-selector">
-      <label htmlFor="chain-select">Blockchain</label>
+      <label htmlFor="chain-select">Blockchain Network</label>
       <select
         id="chain-select"
         value={value}
@@ -33,7 +34,7 @@ export const ChainSelector: React.FC<ChainSelectorProps> = ({
       >
         {chains.map((chain) => (
           <option key={chain.value} value={chain.value}>
-            {chain.label}
+            {chain.icon} {chain.label}
           </option>
         ))}
       </select>
