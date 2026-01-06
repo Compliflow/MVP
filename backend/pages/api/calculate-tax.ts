@@ -19,6 +19,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { fetchTransactions } from '../../src/services/etherscan';
+import { fetchSolanaTransactions } from '../../src/services/solana';
 import { fetchPricesForTransactions } from '../../src/services/coingecko';
 import { calculatePnL } from '../../src/services/pnlCalculator';
 import { TaxCalculationResult } from '../../shared/types';
@@ -92,10 +93,16 @@ export default async function handler(
         error: 'BSC support is coming soon. Please use Ethereum for now.' 
       });
     } else if (chain === 'solana') {
-      // TODO: Implement Solana transaction fetching
-      return res.status(501).json({ 
-        error: 'Solana support is coming soon. Please use Ethereum for now.' 
-      });
+      try {
+        transactions = await fetchSolanaTransactions(walletAddress);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch Solana transactions';
+        return res.status(500).json({
+          success: false,
+          error: errorMessage,
+          hint: 'Solana RPC may be rate-limited. Please try again in a moment.',
+        });
+      }
     } else {
       return res.status(400).json({ error: 'Unsupported chain' });
     }

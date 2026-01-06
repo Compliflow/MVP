@@ -13,6 +13,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { fetchTransactions } from '../../src/services/etherscan';
+import { fetchSolanaTransactions } from '../../src/services/solana';
 import { assessWalletRisk, analyzeTransactionRisks } from '../../src/services/riskDetector';
 import { classifyAllTransactions } from '../../src/services/transactionClassifier';
 import { fetchPricesForTransactions } from '../../src/services/coingecko';
@@ -71,49 +72,56 @@ export default async function handler(
         break;
     }
 
-    // For MVP, only Ethereum is fully supported
-    if (chain === 'bsc' || chain === 'solana') {
-      return res.status(200).json({
-        success: true,
-        data: {
-          walletAddress,
-          totalTransactions: 0,
-          riskAssessment: {
-            overallRisk: 'low',
-            totalRiskyInteractions: 0,
-            riskyInteractionPercentage: 0,
-            riskFlags: [],
-            flaggedContracts: [],
-            flaggedAddresses: [],
-          },
-          classificationSummary: {
-            totalTransactions: 0,
-            classifiedCount: 0,
-            unclassifiedCount: 0,
-            classificationBreakdown: {
-              trade: 0,
-              transfer: 0,
-              income: 0,
-              nft: 0,
-              bridge: 0,
-              gas: 0,
-              unclassified: 0,
-            },
-            classificationConfidence: 0,
-          },
-          complianceFlags: [],
-          lastAnalyzed: Date.now(),
-        } as ComplianceSummary,
-        warning: `${chain === 'bsc' ? 'BSC' : 'Solana'} support is coming soon! Currently only Ethereum is fully integrated.`,
-      });
-    }
-
-    // Step 1: Fetch transactions (reuse existing logic)
-    console.log(`Fetching transactions for compliance analysis: ${walletAddress}...`);
+    // Step 1: Fetch transactions based on chain
+    console.log(`Fetching transactions for compliance analysis: ${walletAddress} on ${chain}...`);
     let transactions: Transaction[] = [];
     
     try {
-      transactions = await fetchTransactions(walletAddress);
+      if (chain === 'ethereum') {
+        transactions = await fetchTransactions(walletAddress);
+      } else if (chain === 'bsc') {
+        // TODO: Implement BSC transaction fetching
+        return res.status(200).json({
+          success: true,
+          data: {
+            walletAddress,
+            totalTransactions: 0,
+            riskAssessment: {
+              overallRisk: 'low',
+              totalRiskyInteractions: 0,
+              riskyInteractionPercentage: 0,
+              riskFlags: [],
+              flaggedContracts: [],
+              flaggedAddresses: [],
+            },
+            classificationSummary: {
+              totalTransactions: 0,
+              classifiedCount: 0,
+              unclassifiedCount: 0,
+              classificationBreakdown: {
+                trade: 0,
+                transfer: 0,
+                income: 0,
+                nft: 0,
+                bridge: 0,
+                gas: 0,
+                unclassified: 0,
+              },
+              classificationConfidence: 0,
+            },
+            complianceFlags: [],
+            lastAnalyzed: Date.now(),
+          } as ComplianceSummary,
+          warning: 'BSC support is coming soon! Currently only Ethereum and Solana are integrated.',
+        });
+      } else if (chain === 'solana') {
+        transactions = await fetchSolanaTransactions(walletAddress);
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'Unsupported chain',
+        });
+      }
     } catch (error) {
       console.error('Error fetching transactions:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch transactions';
@@ -123,6 +131,14 @@ export default async function handler(
           success: false,
           error: errorMessage,
           hint: 'Please set a valid Etherscan API key in backend/.env.local',
+        });
+      }
+      
+      if (chain === 'solana') {
+        return res.status(500).json({
+          success: false,
+          error: errorMessage,
+          hint: 'Solana RPC may be rate-limited. Please try again in a moment.',
         });
       }
       
