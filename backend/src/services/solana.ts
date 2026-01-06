@@ -8,7 +8,36 @@
 import { Transaction } from '../../../shared/types';
 
 // Public Solana RPC endpoints (free tier)
+// Note: Public endpoints are rate-limited. For production, use a paid RPC provider.
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+
+/**
+ * Retry helper with exponential backoff
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const isRateLimit = error?.message?.includes('Too Many Requests') || 
+                         error?.message?.includes('429') ||
+                         error?.message?.includes('rate limit');
+      
+      if (isRateLimit && attempt < maxRetries - 1) {
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`Rate limited, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
 
 /**
  * Fetch all token transfers for a Solana wallet address
@@ -18,34 +47,46 @@ const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.s
  */
 export async function fetchSolanaTransactions(address: string): Promise<Transaction[]> {
   try {
-    // Solana RPC call to get signatures for account
-    const response = await fetch(SOLANA_RPC_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getSignaturesForAddress',
-        params: [
-          address,
-          {
-            limit: 1000, // Limit to 1000 most recent transactions
-          },
-        ],
-      }),
-    });
+    // Solana RPC call to get signatures for account (with retry logic)
+    const getSignatures = async () => {
+      const response = await fetch(SOLANA_RPC_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getSignaturesForAddress',
+          params: [
+            address,
+            {
+              limit: 100, // Reduced limit to avoid rate limits
+            },
+          ],
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Solana RPC error: ${response.statusText}`);
-    }
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Too Many Requests - Solana RPC is rate-limited. Please try again in a moment or use a dedicated RPC provider.');
+        }
+        throw new Error(`Solana RPC error: ${response.statusText}`);
+      }
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.error) {
-      throw new Error(`Solana RPC error: ${data.error.message || 'Unknown error'}`);
-    }
+      if (data.error) {
+        if (data.error.code === 429 || data.error.message?.includes('rate limit') || data.error.message?.includes('Too Many Requests')) {
+          throw new Error('Too Many Requests - Solana RPC is rate-limited. Please try again in a moment or use a dedicated RPC provider.');
+        }
+        throw new Error(`Solana RPC error: ${data.error.message || 'Unknown error'}`);
+      }
+      
+      return data;
+    };
+
+    const data = await retryWithBackoff(getSignatures, 3, 2000);
 
     if (!data.result || data.result.length === 0) {
       return [];
@@ -62,28 +103,52 @@ export async function fetchSolanaTransactions(address: string): Promise<Transact
       
       const batchPromises = batch.map(async (signature: string) => {
         try {
-          const txResponse = await fetch(SOLANA_RPC_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              jsonrpc: '2.0',
-              id: 1,
-              method: 'getTransaction',
-              params: [
-                signature,
-                {
-                  encoding: 'jsonParsed',
-                  maxSupportedTransactionVersion: 0,
-                },
-              ],
-            }),
-          });
+          const getTransaction = async () => {
+            const txResponse = await fetch(SOLANA_RPC_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                method: 'getTransaction',
+                params: [
+                  signature,
+                  {
+                    encoding: 'jsonParsed',
+                    maxSupportedTransactionVersion: 0,
+                  },
+                ],
+              }),
+            });
 
-          const txData = await txResponse.json();
+            if (!txResponse.ok) {
+              if (txResponse.status === 429) {
+                throw new Error('Rate limited');
+              }
+              throw new Error(`HTTP ${txResponse.status}`);
+            }
+
+            const txData = await txResponse.json();
+            
+            if (txData.error) {
+              if (txData.error.code === 429) {
+                throw new Error('Rate limited');
+              }
+              return null;
+            }
+            
+            if (!txData.result) {
+              return null;
+            }
+            
+            return txData;
+          };
+
+          const txData = await retryWithBackoff(getTransaction, 2, 1000).catch(() => null);
           
-          if (txData.error || !txData.result) {
+          if (!txData) {
             return null;
           }
 
@@ -122,9 +187,9 @@ export async function fetchSolanaTransactions(address: string): Promise<Transact
 
       await Promise.all(batchPromises);
       
-      // Rate limiting: wait between batches
+      // Rate limiting: wait between batches (increased delay for public RPC)
       if (i + batchSize < signatures.length) {
-        await new Promise((resolve) => setTimeout(resolve, 200)); // 200ms between batches
+        await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms between batches
       }
     }
 
@@ -134,6 +199,13 @@ export async function fetchSolanaTransactions(address: string): Promise<Transact
     return transactions;
   } catch (error) {
     console.error('Error fetching Solana transactions:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Provide helpful error message for rate limits
+    if (errorMessage.includes('Too Many Requests') || errorMessage.includes('rate limit') || errorMessage.includes('429')) {
+      throw new Error('Solana RPC rate limit exceeded. The public RPC endpoint has strict rate limits. Please try again in a few minutes, or consider using a dedicated RPC provider (Helius, QuickNode, Alchemy) for better performance.');
+    }
+    
     throw error;
   }
 }
